@@ -6,9 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -18,13 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -41,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -58,124 +50,132 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Challenge2TP3Theme {
-                val navController = rememberNavController()
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
+            MainApp()
+        }
+    }
+}
 
-                val items = listOf(
-                    Screen.Home,
-                    Screen.Search,
-                    Screen.Cart,
-                    Screen.Profile
-                )
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainApp() {
+    Challenge2TP3Theme {
+        val navController = rememberNavController()
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            title = { Text("TITLE", color = Color.DarkGray) },
-                            navigationIcon = {
-                                IconButton(onClick = { /* TODO: Open drawer */ }) {
-                                    Icon(Icons.Default.Menu, contentDescription = "Menu")
-                                }
-                            },
-                            actions = {
-                                IconButton(onClick = { /* TODO: Profile */ }) {
-                                    Icon(
-                                        Icons.Default.AccountCircle,
-                                        contentDescription = "Profile",
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                }
-                            },
-                            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                                containerColor = Color.White
-                            )
-                        )
+        val items = listOf(
+            Screen.Home,
+            Screen.Search,
+            Screen.Cart,
+            Screen.Profile
+        )
+
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text("TITLE", color = Color.DarkGray) },
+                    navigationIcon = {
+                        IconButton(onClick = { /* TODO: Open drawer */ }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
                     },
-                    bottomBar = {
-                        Box(
-                            contentAlignment = Alignment.BottomCenter,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                        ) {
-                            NavigationBar(
-                                containerColor = Color.White,
-                                tonalElevation = 8.dp,
-                                modifier = Modifier.height(80.dp)
-                            ) {
-                                items.forEachIndexed { index, screen ->
-                                    // Espacio para el FAB en el medio (entre Search y Cart)
-                                    if (index == 2) {
-                                        NavigationBarItem(
-                                            selected = false,
-                                            onClick = { },
-                                            icon = { Box(Modifier.size(24.dp)) },
-                                            enabled = false
-                                        )
-                                    }
-
-                                    val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-
-                                    NavigationBarItem(
-                                        icon = {
-                                            screen.icon?.let {
-                                                Icon(it, contentDescription = screen.title)
-                                            }
-                                        },
-                                        label = { Text(screen.title) },
-                                        selected = isSelected,
-                                        onClick = {
-                                            navController.navigate(screen.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }
-                                        },
-                                        colors = NavigationBarItemDefaults.colors(
-                                            selectedIconColor = PrimaryBrown,
-                                            selectedTextColor = PrimaryBrown,
-                                            unselectedIconColor = Color.Gray,
-                                            unselectedTextColor = Color.Gray,
-                                            indicatorColor = Color.Transparent
-                                        )
-                                    )
-                                }
-                            }
-                            
-                            // Floating Action Button Custom (el icono de la tienda)
-                            FloatingActionButton(
-                                onClick = { /* TODO: Main Action */ },
-                                shape = CircleShape,
-                                containerColor = PrimaryBrown,
-                                contentColor = Color.White,
-                                modifier = Modifier
-                                    .offset(y = (-30).dp)
-                                    .size(64.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Home, // Usamos Home como placeholder de Store
-                                    contentDescription = "Shop",
-                                    modifier = Modifier.size(32.dp)
+                    actions = {
+                        IconButton(onClick = { /* TODO: Profile */ }) {
+                            Icon(
+                                Icons.Default.AccountCircle,
+                                contentDescription = "Profile",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.White
+                    )
+                )
+            },
+            bottomBar = {
+                Box(
+                    contentAlignment = Alignment.BottomCenter,
+                    modifier = Modifier.height(100.dp)
+                ) {
+                    NavigationBar(
+                        containerColor = Color.White,
+                        tonalElevation = 8.dp,
+                        modifier = Modifier.height(80.dp)
+                    ) {
+                        items.forEachIndexed { index, screen ->
+                            if (index == 2) {
+                                NavigationBarItem(
+                                    selected = false,
+                                    onClick = { },
+                                    icon = { Box(Modifier.size(24.dp)) },
+                                    enabled = false
                                 )
                             }
+
+                            val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+
+                            NavigationBarItem(
+                                icon = {
+                                    screen.icon?.let {
+                                        Icon(it, contentDescription = screen.title)
+                                    }
+                                },
+                                label = { Text(screen.title) },
+                                selected = isSelected,
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = PrimaryBrown,
+                                    selectedTextColor = PrimaryBrown,
+                                    unselectedIconColor = Color.Gray,
+                                    unselectedTextColor = Color.Gray,
+                                    indicatorColor = Color.Transparent
+                                )
+                            )
                         }
                     }
-                ) { innerPadding ->
-                    Box(
+
+                    FloatingActionButton(
+                        onClick = { /* TODO: Main Action */ },
+                        shape = CircleShape,
+                        containerColor = PrimaryBrown,
+                        contentColor = Color.White,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                            .background(BackgroundBeige)
+                            .offset(y = (-30).dp)
+                            .size(64.dp)
                     ) {
-                        NavGraph(navController = navController)
+                        Icon(
+                            Icons.Default.Home,
+                            contentDescription = "Shop",
+                            modifier = Modifier.size(32.dp)
+                        )
                     }
                 }
             }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(BackgroundBeige)
+            ) {
+                NavGraph(navController = navController)
+            }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MainAppPreview() {
+    MainApp()
 }
