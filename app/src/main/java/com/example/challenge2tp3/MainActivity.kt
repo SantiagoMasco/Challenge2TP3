@@ -5,54 +5,93 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.challenge2tp3.ui.navigation.NavGraph
 import com.example.challenge2tp3.ui.navigation.Screen
-import com.example.challenge2tp3.ui.theme.BackgroundBeige
-import com.example.challenge2tp3.ui.theme.Challenge2TP3Theme
-import com.example.challenge2tp3.ui.theme.PrimaryBrown
-import com.example.challenge2tp3.ui.theme.SurfaceWhite
+import com.example.challenge2tp3.ui.theme.*
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            MainApp()
+        setContent { MainApp() }
+    }
+}
+
+/**
+ * SHAPE DEFINITIVO: Con notch ampliado para efecto "floating".
+ */
+class FigmaMountainNotchShape : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val path = Path().apply {
+            val width = size.width
+            val height = size.height
+            // Aumentamos el radio del recorte a 46dp para que el FAB (31dp radio) flote con margen
+            val cutoutRadius = with(density) { 46.dp.toPx() } 
+            
+            val sideHeight = with(density) { 65.dp.toPx() }   
+            val peakRise = with(density) { 15.dp.toPx() }     
+            
+            val baseLineY = height - sideHeight
+            val peakY = baseLineY - peakRise
+            
+            moveTo(0f, height)
+            lineTo(0f, baseLineY)
+            
+            // 1. Ola Izquierda
+            cubicTo(
+                width * 0.15f, baseLineY,
+                width * 0.35f, peakY,
+                width * 0.5f - cutoutRadius, peakY
+            )
+            
+            // 2. Notch Central (Arco cóncavo)
+            arcTo(
+                rect = Rect(
+                    left = width / 2 - cutoutRadius,
+                    top = peakY - cutoutRadius,
+                    right = width / 2 + cutoutRadius,
+                    bottom = peakY + cutoutRadius
+                ),
+                startAngleDegrees = 180f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+            
+            // 3. Ola Derecha
+            cubicTo(
+                width * 0.5f + cutoutRadius, peakY,
+                width * 0.85f, peakY,
+                width, baseLineY
+            )
+            
+            lineTo(width, height)
+            close()
         }
+        return Outline.Generic(path)
     }
 }
 
@@ -64,120 +103,126 @@ fun MainApp() {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
 
-        val items = listOf(
-            Screen.Home,
-            Screen.Search,
-            Screen.Cart,
-            Screen.Profile
-        )
-
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            containerColor = BackgroundBeige, 
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("TITLE", color = Color.DarkGray) },
+                    title = { Text("TITLE", color = Color.DarkGray, fontSize = 18.sp) },
                     navigationIcon = {
-                        IconButton(onClick = { /* TODO: Open drawer */ }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
+                        IconButton(onClick = { }) { Icon(Icons.Default.Menu, "Menu", tint = Color.DarkGray) }
                     },
                     actions = {
-                        IconButton(onClick = { /* TODO: Profile */ }) {
-                            Icon(
-                                Icons.Default.AccountCircle,
-                                contentDescription = "Profile",
-                                modifier = Modifier.size(32.dp)
-                            )
+                        IconButton(onClick = { }) { 
+                            Icon(Icons.Default.AccountCircle, "Profile", Modifier.size(28.dp), tint = Color.DarkGray) 
                         }
                     },
                     modifier = Modifier.height(64.dp),
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = SurfaceWhite
-                    )
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = SurfaceWhite)
                 )
             },
-            bottomBar = {
-                Box(
-                    contentAlignment = Alignment.BottomCenter,
-                    modifier = Modifier.height(100.dp)
-                ) {
-                    NavigationBar(
-                        containerColor = Color.White,
-                        tonalElevation = 8.dp,
-                        modifier = Modifier.height(80.dp)
-                    ) {
-                        items.forEachIndexed { index, screen ->
-                            if (index == 2) {
-                                NavigationBarItem(
-                                    selected = false,
-                                    onClick = { },
-                                    icon = { Box(Modifier.size(24.dp)) },
-                                    enabled = false
-                                )
-                            }
-
-                            val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-
-                            NavigationBarItem(
-                                icon = {
-                                    screen.icon?.let {
-                                        Icon(it, contentDescription = screen.title)
-                                    }
-                                },
-                                label = { Text(screen.title) },
-                                selected = isSelected,
-                                onClick = {
-                                    navController.navigate(screen.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = PrimaryBrown,
-                                    selectedTextColor = PrimaryBrown,
-                                    unselectedIconColor = Color.Gray,
-                                    unselectedTextColor = Color.Gray,
-                                    indicatorColor = Color.Transparent
-                                )
-                            )
-                        }
-                    }
-
-                    FloatingActionButton(
-                        onClick = { /* TODO: Main Action */ },
-                        shape = CircleShape,
-                        containerColor = PrimaryBrown,
-                        contentColor = Color.White,
-                        modifier = Modifier
-                            .offset(y = (-30).dp)
-                            .size(64.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Home,
-                            contentDescription = "Shop",
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-            }
+            bottomBar = { CustomBottomBar(navController, currentDestination) }
         ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(BackgroundBeige)
-            ) {
-                NavGraph(navController = navController)
+            Box(Modifier.fillMaxSize()) {
+                Box(Modifier.padding(top = innerPadding.calculateTopPadding())) {
+                    NavGraph(navController = navController)
+                }
             }
         }
     }
 }
 
+@Composable
+fun CustomBottomBar(navController: NavHostController, currentDestination: NavDestination?) {
+    val items = listOf(
+        NavigationItem("Product", Screen.Home.route, Icons.Filled.Home, Icons.Filled.Home),
+        NavigationItem("Search", Screen.Search.route, Icons.Filled.Search, Icons.Outlined.Search),
+        NavigationItem("Cart", Screen.Cart.route, Icons.Filled.ShoppingCart, Icons.Outlined.ShoppingCart),
+        NavigationItem("Profile", Screen.Profile.route, Icons.Filled.Person, Icons.Outlined.Person)
+    )
+
+    Box(
+        modifier = Modifier.fillMaxWidth().height(105.dp),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().height(90.dp),
+            color = Color.White,
+            shape = FigmaMountainNotchShape(),
+            shadowElevation = 8.dp
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceAround) {
+                    items.take(2).forEach { BottomNavItem(it, navController, currentDestination) }
+                }
+
+                // Aumentamos el Spacer a 95.dp para que el notch no toque los iconos
+                Spacer(modifier = Modifier.size(95.dp)) 
+
+                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceAround) {
+                    items.drop(2).forEach { BottomNavItem(it, navController, currentDestination) }
+                }
+            }
+        }
+
+        FloatingActionButton(
+            onClick = { },
+            shape = CircleShape,
+            containerColor = PrimaryBrown,
+            contentColor = Color.White,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .size(62.dp)
+                // Reducimos el offset a 6.dp para que el botón flote más arriba y no toque el fondo del notch
+                .offset(y = 6.dp),
+            elevation = FloatingActionButtonDefaults.elevation(6.dp)
+        ) {
+            Icon(Icons.Default.Storefront, "Shop", Modifier.size(32.dp))
+        }
+    }
+}
+
+@Composable
+fun BottomNavItem(item: NavigationItem, navController: NavHostController, currentDestination: NavDestination?) {
+    val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+    val color = if (isSelected) PrimaryBrown else Color(0xFFC4C4C4)
+    
+    Column(
+        modifier = Modifier
+            .padding(bottom = 4.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                navController.navigate(item.route) {
+                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+            contentDescription = item.label,
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
+        Text(text = item.label, color = color, fontSize = 10.sp)
+    }
+}
+
+data class NavigationItem(
+    val label: String,
+    val route: String,
+    val selectedIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    val unselectedIcon: androidx.compose.ui.graphics.vector.ImageVector
+)
+
 @Preview(showBackground = true)
 @Composable
-fun MainAppPreview() {
-    MainApp()
-}
+fun MainAppPreview() { MainApp() }
