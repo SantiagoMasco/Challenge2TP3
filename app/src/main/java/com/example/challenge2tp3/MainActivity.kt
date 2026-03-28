@@ -43,6 +43,7 @@ import com.example.challenge2tp3.ui.navigation.Screen
 import com.example.challenge2tp3.ui.theme.BackgroundBeige
 import com.example.challenge2tp3.ui.theme.Challenge2TP3Theme
 import com.example.challenge2tp3.ui.theme.PrimaryBrown
+import com.example.challenge2tp3.ui.theme.SurfaceWhite
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -89,8 +90,9 @@ fun MainApp() {
                             )
                         }
                     },
+                    modifier = Modifier.height(64.dp),
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.White
+                        containerColor = SurfaceWhite
                     )
                 )
             },
