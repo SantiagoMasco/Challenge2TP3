@@ -3,7 +3,9 @@ package com.example.challenge2tp3.ui.screens.detail
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,7 +16,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.challenge2tp3.ui.theme.PrimaryBrown
+import androidx.navigation.compose.rememberNavController
+import com.example.challenge2tp3.CustomBottomBar
+import com.example.challenge2tp3.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +66,7 @@ fun DetailScreen(productId: Int?, onBack: () -> Unit = {}) {
 
         // 2. Cantidad de producto
         Text(
-            text = "Count of producy",
+            text = "Count of product",
             fontSize = 24.sp,
             fontWeight = FontWeight.Normal,
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
@@ -88,7 +92,7 @@ fun DetailScreen(productId: Int?, onBack: () -> Unit = {}) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 100.dp),
+                .padding(bottom = 110.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -115,8 +119,37 @@ fun DetailScreen(productId: Int?, onBack: () -> Unit = {}) {
     }
 }
 
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp", showSystemUi = true)
 @Composable
 fun DetailScreenPreview() {
-    DetailScreen(productId = 1)
+    Challenge2TP3Theme(dynamicColor = false) {
+        val navController = rememberNavController()
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = BackgroundBeige,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text("Leather boots", color = Color.DarkGray, fontSize = 18.sp) },
+                    navigationIcon = {
+                        IconButton(onClick = { }) { Icon(Icons.Default.Menu, "Menu", tint = Color.DarkGray) }
+                    },
+                    actions = {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Default.AccountCircle, "Profile", Modifier.size(28.dp), tint = Color.DarkGray)
+                        }
+                    },
+                    modifier = Modifier.height(64.dp),
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = SurfaceWhite)
+                )
+            },
+            bottomBar = { CustomBottomBar(navController, null) }
+        ) { innerPadding ->
+            Box(Modifier.fillMaxSize()) {
+                Box(Modifier.padding(top = innerPadding.calculateTopPadding())) {
+                    DetailScreen(productId = 1)
+                }
+            }
+        }
+    }
 }
