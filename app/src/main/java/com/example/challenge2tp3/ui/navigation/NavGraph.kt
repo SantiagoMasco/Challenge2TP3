@@ -18,7 +18,9 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
         composable(route = Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(onProductClick = { productId ->
+                navController.navigate(Screen.Detail.createRoute(productId))
+            })
         }
         composable(route = Screen.Search.route) {
             Text(text = "Search Screen")
@@ -35,8 +37,11 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
                 type = androidx.navigation.NavType.IntType
             })
         ) { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getInt("movieId")
-            DetailScreen(movieId)
+            val productId = backStackEntry.arguments?.getInt("movieId")
+            DetailScreen(
+                productId = productId,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }
