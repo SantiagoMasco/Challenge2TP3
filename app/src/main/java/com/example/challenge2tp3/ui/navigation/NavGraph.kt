@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import com.example.challenge2tp3.ui.screens.detail.DetailScreen
 import com.example.challenge2tp3.ui.screens.favorites.FavoritesScreen
 import com.example.challenge2tp3.ui.screens.home.HomeScreen
+import com.example.challenge2tp3.ui.screens.settings.SettingsScreen
 
 @Composable
 fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -29,11 +30,15 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
         composable(route = Screen.Favorites.route) {
             FavoritesScreen()
         }
+        composable(route = Screen.Settings.route) {
+            SettingsScreen()
+        }
         composable(route = Screen.Cart.route) {
             Text(text = "Cart Screen")
         }
         composable(route = Screen.Profile.route) {
-            Text(text = "Profile Screen")
+            // Asumiendo que Profile lleva a Settings o tiene su propia vista
+            SettingsScreen()
         }
         composable(
             route = Screen.Detail.route,
