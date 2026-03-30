@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
@@ -32,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.challenge2tp3.ui.navigation.NavGraph
 import com.example.challenge2tp3.ui.navigation.Screen
 import com.example.challenge2tp3.ui.theme.*
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,26 +52,15 @@ class FigmaMountainNotchShape : Shape {
         val path = Path().apply {
             val width = size.width
             val height = size.height
-            // Aumentamos el radio del recorte a 46dp para que el FAB (31dp radio) flote con margen
             val cutoutRadius = with(density) { 46.dp.toPx() } 
-            
             val sideHeight = with(density) { 65.dp.toPx() }   
             val peakRise = with(density) { 15.dp.toPx() }     
-            
             val baseLineY = height - sideHeight
             val peakY = baseLineY - peakRise
             
             moveTo(0f, height)
             lineTo(0f, baseLineY)
-            
-            // 1. Ola Izquierda
-            cubicTo(
-                width * 0.15f, baseLineY,
-                width * 0.35f, peakY,
-                width * 0.5f - cutoutRadius, peakY
-            )
-            
-            // 2. Notch Central (Arco cóncavo)
+            cubicTo(width * 0.15f, baseLineY, width * 0.35f, peakY, width * 0.5f - cutoutRadius, peakY)
             arcTo(
                 rect = Rect(
                     left = width / 2 - cutoutRadius,
@@ -80,14 +72,7 @@ class FigmaMountainNotchShape : Shape {
                 sweepAngleDegrees = -180f,
                 forceMoveTo = false
             )
-            
-            // 3. Ola Derecha
-            cubicTo(
-                width * 0.5f + cutoutRadius, peakY,
-                width * 0.85f, peakY,
-                width, baseLineY
-            )
-            
+            cubicTo(width * 0.5f + cutoutRadius, peakY, width * 0.85f, peakY, width, baseLineY)
             lineTo(width, height)
             close()
         }
@@ -102,30 +87,98 @@ fun MainApp() {
         val navController = rememberNavController()
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
 
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = BackgroundBeige, 
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("TITLE", color = Color.DarkGray, fontSize = 18.sp) },
-                    navigationIcon = {
-                        IconButton(onClick = { }) { Icon(Icons.Default.Menu, "Menu", tint = Color.DarkGray) }
-                    },
-                    actions = {
-                        IconButton(onClick = { }) { 
-                            Icon(Icons.Default.AccountCircle, "Profile", Modifier.size(28.dp), tint = Color.DarkGray) 
+        val drawerItems = listOf(
+            NavigationItem("Product", Screen.Home.route, Icons.Filled.Home, Icons.Outlined.Home),
+            NavigationItem("Search", Screen.Search.route, Icons.Filled.Search, Icons.Outlined.Search),
+            NavigationItem("Favorites", Screen.Favorites.route, Icons.Filled.Favorite, Icons.Outlined.Favorite),
+            NavigationItem("Settings", Screen.Settings.route, Icons.Filled.Settings, Icons.Outlined.Settings),
+            NavigationItem("Profile", Screen.Profile.route, Icons.Filled.Person, Icons.Outlined.Person)
+        )
+
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet(
+                    drawerContainerColor = SurfaceWhite,
+                    drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
+                ) {
+                    Spacer(Modifier.height(24.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = PrimaryBrown
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text("Martin", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text("UI UX DESIGN", fontSize = 14.sp, color = Color.Gray)
                         }
-                    },
-                    modifier = Modifier.height(64.dp),
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = SurfaceWhite)
-                )
-            },
-            bottomBar = { CustomBottomBar(navController, currentDestination) }
-        ) { innerPadding ->
-            Box(Modifier.fillMaxSize()) {
-                Box(Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                    NavGraph(navController = navController)
+                    }
+                    HorizontalDivider(Modifier.padding(horizontal = 24.dp), color = Color.LightGray.copy(alpha = 0.5f))
+                    Spacer(Modifier.height(16.dp))
+                    drawerItems.forEach { item ->
+                        val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+                        NavigationDrawerItem(
+                            label = { Text(item.label) },
+                            selected = isSelected,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = { Icon(if (isSelected) item.selectedIcon else item.unselectedIcon, contentDescription = null) },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                            colors = NavigationDrawerItemDefaults.colors(
+                                selectedContainerColor = PrimaryBrown.copy(alpha = 0.1f),
+                                selectedIconColor = PrimaryBrown,
+                                selectedTextColor = PrimaryBrown,
+                                unselectedIconColor = Color.Gray,
+                                unselectedTextColor = Color.Gray
+                            )
+                        )
+                    }
+                }
+            }
+        ) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = BackgroundBeige, 
+                topBar = {
+                    CenterAlignedTopAppBar(
+                        title = { Text("TITLE", color = Color.DarkGray, fontSize = 18.sp) },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) { 
+                                Icon(Icons.Default.Menu, "Menu", tint = Color.DarkGray) 
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { navController.navigate(Screen.Profile.route) }) { 
+                                Icon(Icons.Default.AccountCircle, "Profile", Modifier.size(28.dp), tint = Color.DarkGray) 
+                            }
+                        },
+                        modifier = Modifier.height(64.dp),
+                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = SurfaceWhite)
+                    )
+                },
+                bottomBar = { CustomBottomBar(navController, currentDestination) }
+            ) { innerPadding ->
+                Box(Modifier.fillMaxSize()) {
+                    Box(Modifier.padding(top = innerPadding.calculateTopPadding())) {
+                        NavGraph(navController = navController)
+                    }
                 }
             }
         }
@@ -159,10 +212,7 @@ fun CustomBottomBar(navController: NavHostController, currentDestination: NavDes
                 Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceAround) {
                     items.take(2).forEach { BottomNavItem(it, navController, currentDestination) }
                 }
-
-                // Aumentamos el Spacer a 95.dp para que el notch no toque los iconos
                 Spacer(modifier = Modifier.size(95.dp)) 
-
                 Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceAround) {
                     items.drop(2).forEach { BottomNavItem(it, navController, currentDestination) }
                 }
@@ -177,7 +227,6 @@ fun CustomBottomBar(navController: NavHostController, currentDestination: NavDes
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .size(62.dp)
-                // Reducimos el offset a 6.dp para que el botón flote más arriba y no toque el fondo del notch
                 .offset(y = 6.dp),
             elevation = FloatingActionButtonDefaults.elevation(6.dp)
         ) {
