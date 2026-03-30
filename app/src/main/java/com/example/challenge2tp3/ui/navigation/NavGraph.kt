@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.challenge2tp3.ui.screens.detail.DetailScreen
+import com.example.challenge2tp3.ui.screens.favorites.FavoritesScreen
 import com.example.challenge2tp3.ui.screens.home.HomeScreen
 
 @Composable
@@ -24,6 +25,9 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
         }
         composable(route = Screen.Search.route) {
             Text(text = "Search Screen")
+        }
+        composable(route = Screen.Favorites.route) {
+            FavoritesScreen()
         }
         composable(route = Screen.Cart.route) {
             Text(text = "Cart Screen")
