@@ -11,6 +11,7 @@ import com.example.challenge2tp3.ui.screens.detail.DetailScreen
 import com.example.challenge2tp3.ui.screens.favorites.FavoritesScreen
 import com.example.challenge2tp3.ui.screens.home.HomeScreen
 import com.example.challenge2tp3.ui.screens.settings.SettingsScreen
+import com.example.challenge2tp3.ui.screens.profile.ProfileScreen
 
 @Composable
 fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -37,8 +38,7 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
             Text(text = "Cart Screen")
         }
         composable(route = Screen.Profile.route) {
-            // Asumiendo que Profile lleva a Settings o tiene su propia vista
-            SettingsScreen()
+            ProfileScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Screen.Detail.route,
